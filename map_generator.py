@@ -15,106 +15,96 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from random import randint
-
-max_exits = 4
+from random import choice, randint, randrange
 
 
 class TileType:
-    allowed_exits = [""]
+    allowed_exits = []
 
-    def __init__(self, allowed_exits=[""]):
+    def __init__(self, allowed_exits):
         self.allowed_exits = allowed_exits
 
 
 class ExitType:
-    allowed_tiles = [""]
+    allowed_tiles = []
     lockable = False
 
-    def __init__(self, allowed_tiles=[""], lockable=False):
+    def __init__(self, allowed_tiles, lockable):
         self.allowed_tiles = allowed_tiles
         self.lockable = lockable
 
 
-class Tile:
-    desc = ""
+class MapObject:
     type = ""
-    exits = [""]
 
-    def __init__(self, desc="", exit_to=[]):
-        self.desc = desc
-        self.exits = exit_to
+    def __init__(self, _type):
+        self.type = _type
+
+    @staticmethod
+    def random_type(types):
+        return list(types.keys())[randrange(0, len(types))]
+
+
+class Tile(MapObject):
+    exits = []
+
+    def __init__(self, _type):
+        super().__init__(_type)
+        self._gen_exits()
+
+    def desc(self):
+        return 'You see a {name} with {exit_count} possible exits.' \
+               'These are the exits you can see: {exits}' \
+               ''.format(name=self.type, exit_count=len(self.exits),
+                         exits=[exit.data.type for exit in self.exits])
+
+    def _gen_exits(self, max_exits=3):
+        self.exits = []
+        possible_exits = TILE_TYPES[self.type].allowed_exits
+        for _ in range(randint(1, max_exits)):
+            exit_data = ExitData(choice(possible_exits), False)
+            self.exits.append(Exit(exit_data))
 
 
 class Exit:
-    type = ""
-    destination = ""
+    dest = None
+    data = None
+
+    def __init__(self, data):
+        self.data = data
+
+
+class ExitData(MapObject):
     locked = False
 
-    def __init__(self, type="", locked=False):
-        self.type = type
+    def __init__(self, _type, locked):
         self.locked = locked
+        super().__init__(_type)
 
 
-tile_types = {
+TILE_TYPES = {
     "forest": TileType(["road", "tunnel"]),
     "room": TileType(["door", "window", "trapdoor"])
 }
 
-tiles = tile_types.keys()
-
-num_of = {}
-
-for tile_num in range(0, tiles.__len__()):
-    num_of[tiles[tile_num]] = 0
-
-exit_types = {
+EXIT_TYPES = {
     "road": ExitType(["forest"], False),
     "door": ExitType(["room", "tunnel"], True),
     "window": ExitType(["room"], True),
     "trapdoor": ExitType(["tunnel", "room"], True)
 }
 
-exits = exit_types.keys()
+#_map = {"forest0": Tile("forest", {"road", "tunnel"})}
 
-map = {"forest0": Tile("forest", {"road", "tunnel"})}
+def generate_tile(_from="", through=None):
+    tile = Tile(Tile.random_type(TILE_TYPES))
 
-
-def generate_tile(from_name="", through=""):
-    type_num = randint(0, tile_types.__len__() - 1)
-    tile_type_name = tiles[type_num]
-    num_of[tile_type_name] += 1
-    tile_type = tile_types[tile_type_name]
-
-    num_exits = randint(1, max_exits)
-    tile_exits = []
-
-    possible_exits = []
-
-    for i in range(0, exits.__len__()):
-
-        for ii in range(0, tile_type.allowed_exits.__len__()):
-
-            if exits[i] == tile_type.allowed_exits[ii]:
-                possible_exits.append(exits[i])
-
-    for iii in range(0, num_exits):
-        exit_name = possible_exits[randint(0, possible_exits.__len__() - 1)]
-        tile_exit = exit_types[exit_name]
-        tile_exits.append(Exit(exit_name, False))
-
-    first_exit = exit_types[through]
-    tile_exits.append(Exit(through, False))
-
-    TILE = Tile("You see a " + tile_type_name + " tile with " + str(tile_exits.__len__()) + " possible exits.",
-                tile_exits)
-    tile_name = tile_type_name + str(num_of[tile_type_name])
-
-    global map
-    map[tile_name] = TILE
+    if through is not None:
+        tile.exits.append(Exit(through))
+    return tile
 
 
-generate_tile("forest", "door")
+print(generate_tile(_from="forest").desc())
 
-map_tiles = map.keys()
-print(map[map_tiles[1]].desc)
+#map_tiles = _map.keys()
+#print(_map[map_tiles[1]].desc)
