@@ -58,6 +58,17 @@ class Tile(MapObject):
                ''.format(name=self.type, exit_count=len(self.exits),
                          exits=[exit.data.type for exit in self.exits])
 
+    def exit(self, exit):
+        if exit in self.exits:
+            exit = self.exits[self.exits.index(exit)]
+            if exit.dest is None:
+                new_tile = generate_tile(_from=self, through=exit)
+                self.exits[self.exits.index(exit)].dest = new_tile
+                return new_tile
+            return exit.dest
+
+        raise ValueError('exit not available')
+
     def _gen_exits(self, max_exits=3):
         self.exits = []
         possible_exits = TILE_TYPES[self.type].allowed_exits
@@ -70,8 +81,12 @@ class Exit:
     dest = None
     data = None
 
-    def __init__(self, data):
+    def __init__(self, data, dest=None):
         self.data = data
+        self.dest = dest
+
+    def __eq__(self, other):
+        return other == self.data.type
 
 
 class ExitData(MapObject):
@@ -96,15 +111,16 @@ EXIT_TYPES = {
 
 #_map = {"forest0": Tile("forest", {"road", "tunnel"})}
 
-def generate_tile(_from="", through=None):
+
+def generate_tile(_from=None, through=None):
     tile = Tile(Tile.random_type(TILE_TYPES))
 
     if through is not None:
-        tile.exits.append(Exit(through))
+        tile.exits.append(Exit(through.data, dest=_from))
     return tile
 
 
-print(generate_tile(_from="forest").desc())
+#print(generate_tile(_from="forest").desc())
 
 #map_tiles = _map.keys()
 #print(_map[map_tiles[1]].desc)

@@ -1,1 +1,1 @@
-import generator
+import game
