@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # Copyright (C) 2014-2019  Juraj Fiala <jurf@riseup.net>
 #
 # This program is free software: you can redistribute it and/or modify
