@@ -53,10 +53,9 @@ class Tile(MapObject):
         self._gen_exits()
 
     def desc(self):
-        return 'You see a {name} with {exit_count} possible exits.' \
-               'These are the exits you can see: {exits}' \
-               ''.format(name=self.type, exit_count=len(self.exits),
-                         exits=[exit.data.type for exit in self.exits])
+        return 'You see a {name} with {exit_count} exits: {exits}.' \
+               .format(name=self.type, exit_count=len(self.exits),
+                       exits=[exit.data.type for exit in self.exits])
 
     def exit(self, exit):
         if exit in self.exits:
